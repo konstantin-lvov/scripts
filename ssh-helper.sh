@@ -1,4 +1,8 @@
 #!/bin/bash
+# SSH HELPER 0.1 beta
+# /etc/ssh/ssh_config -> HashKnownHosts must be 'no'
+# script will filter the occurance in known_hosts ssh config file
+# and print them as list for selection and connection via ssh
 
 ALL_HOSTS=($(cat ~/.ssh/known_hosts | sed 's/,/ /g' | awk '{print $1}'))
 
