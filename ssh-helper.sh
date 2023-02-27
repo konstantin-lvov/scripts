@@ -1,8 +1,4 @@
 #!/bin/bash
-# SSH HELPER 0.1 beta
-# /etc/ssh/ssh_config -> HashKnownHosts must be 'no'
-# script will filter the occurance in known_hosts ssh config file
-# and print them as list for selection and connection via ssh
 
 ALL_HOSTS=($(cat ~/.ssh/known_hosts | sed 's/,/ /g' | awk '{print $1}'))
 
@@ -74,24 +70,38 @@ if [[ $MODE == "debug" ]]; then
   done
 fi
 
-echo "Witch of them do you choose:"
+echo "List of all hosts in known_host file:"
 for i in ${!ALL_FILTRED_HOSTS[@]}; do
   echo "Host $((i+1)) is ${ALL_FILTRED_HOSTS[i]}"
 done
 
+echo "Witch of them do you choose:"
 read CHOOSE
 CHOOSE=$(echo "$((CHOOSE-1))")
 if [[ $MODE == "debug" ]]; then
   echo "CHOOSED INDEX is $CHOOSE"
 fi
 
-echo "Username:"
-read USERNAME
+echo "List of recently users:"
+LIST_OF_USERS=($(cat /home/u_0621n/.bash_history | grep -Eo 'ssh.*@.*' | grep -Eo '[a-zA-Z]+@[a-zA-Z0-9]+' | sed 's/@/ /' | awk '{print $1}' | sort | uniq))
+if [[ $MODE == "debug" ]]; then
+	echo "$(cat /home/u_0621n/.bash_history | grep -Eo 'ssh.*@.*' | grep -Eo '[a-zA-Z]+@[a-zA-Z0-9]+' | sed 's/@/ /' | awk '{print $1}' | sort | uniq)"
+fi
+
+for i in ${!LIST_OF_USERS[@]}; do
+	echo "$((i+1)) is ${LIST_OF_USERS[i]}"
+done
+
+echo "Choose one:"
+read U_CHOOSE
+U_CHOOSE=$(echo "$((U_CHOOSE-1))")
+
 
 TARGET_HOST=$(echo ${ALL_FILTRED_HOSTS[CHOOSE]} | sed 's/:/ /' | awk '{ print $1}')
 TARGET_PORT=$(echo ${ALL_FILTRED_HOSTS[CHOOSE]} | sed 's/:/ /' | awk '{ print $2}')
+TARGET_USER=$(echo ${LIST_OF_USERS[U_CHOOSE]})
 if [[ $MODE == "debug" ]]; then
   echo "TARGET HOST IS $TARGET_HOST, TARGET PORT IS $TARGET_PORT"
 fi
 
-exec ssh -p $TARGET_PORT $USERNAME@$TARGET_HOST
+exec ssh -p $TARGET_PORT $TARGET_USER@$TARGET_HOST
